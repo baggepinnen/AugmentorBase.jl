@@ -57,8 +57,8 @@ outputs = similar.(inputs)
 augmentbatch!(outputs, inputs, FlipX() |> FlipY())
 ```
 
-The parameter `pipeline` can be a `Augmentor.Pipeline`, a tuple
-of `Augmentor.Operation`, or a single `Augmentor.Operation`.
+The parameter `pipeline` can be a `AugmentorBase.Pipeline`, a tuple
+of `AugmentorBase.Operation`, or a single `AugmentorBase.Operation`.
 
 ```julia
 augmentbatch!(outputs, inputs, FlipX() |> FlipY())

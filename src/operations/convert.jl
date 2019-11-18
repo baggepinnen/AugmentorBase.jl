@@ -1,5 +1,5 @@
 """
-    ConvertEltype <: Augmentor.Operation
+    ConvertEltype <: AugmentorBase.Operation
 
 Description
 --------------
@@ -70,7 +70,7 @@ function Base.show(io::IO, op::ConvertEltype)
         print(io, "Convert eltype to ")
         _showcolor(io, op.eltype)
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end

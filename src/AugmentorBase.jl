@@ -1,5 +1,6 @@
-module Augmentor
+module AugmentorBase
 
+using ColorTypes
 using MappedArrays
 using Interpolations
 using StaticArrays
@@ -9,10 +10,8 @@ using MLDataPattern
 using ComputationalResources
 using FileIO
 using LinearAlgebra
-using Base.PermutedDimsArrays: PermutedDimsArray
 
 export
-
     testpattern,
     CPU1,
     CPUThreads,
@@ -29,6 +28,8 @@ export
     CropRatio,
     RCropRatio,
 
+    CacheIntermediate,
+
     Resize,
 
     NoOp,
@@ -42,7 +43,6 @@ include("utils.jl")
 include("types.jl")
 include("operation.jl")
 
-include("operations/dims.jl")
 include("operations/convert.jl")
 include("operations/mapfun.jl")
 
@@ -50,7 +50,6 @@ include("operations/noop.jl")
 include("operations/cache.jl")
 
 include("operations/crop.jl")
-include("operations/resize.jl")
 include("operations/either.jl")
 
 include("pipeline.jl")
@@ -59,7 +58,7 @@ include("augment.jl")
 include("augmentbatch.jl")
 
 function __init__()
-    rand_mutex[] = Threads.Mutex()
+    rand_mutex[] = ReentrantLock()
 end
 
 end # module

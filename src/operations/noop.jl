@@ -1,5 +1,5 @@
 """
-    NoOp <: Augmentor.AffineOperation
+    NoOp <: AugmentorBase.AffineOperation
 
 Identity transformation that does not do anything with the given
 image, but instead passes it along unchanged (without copying).
@@ -14,7 +14,6 @@ struct NoOp <: AffineOperation end
 @inline supports_view(::Type{NoOp}) = true
 
 # TODO: implement method for n-dim arrays
-toaffinemap(::NoOp, input::AbstractMatrix) = AffineMap(@SMatrix([1. 0; 0 1.]), @SVector([0.,0.]))
 applyeager(::NoOp, input::AbstractArray, param) = maybe_copy(input)
 applylazy(::NoOp, input::AbstractArray, param) = input
 
@@ -36,7 +35,7 @@ function Base.show(io::IO, op::NoOp)
     if get(io, :compact, false)
         print(io, "No operation")
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end

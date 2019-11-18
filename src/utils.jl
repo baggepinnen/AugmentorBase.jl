@@ -1,5 +1,5 @@
 """
-    testpattern(dims=2) -> Matrix{RGBA{N0f8}}
+    testpattern(dims=2)
 
 For dims = 1, return a mix of two sinusoids.
 
@@ -30,7 +30,7 @@ end
 # Because we only require random numbers to sample parameters
 # and not the actual expensive computation, this seems like a better
 # approach than using separate RNG per thread.
-const rand_mutex = Ref{Threads.Mutex}()
+const rand_mutex = Ref{ReentrantLock}()
 
 # constant overhead of about 80 ns compared to unsafe rand
 function safe_rand(args...)

@@ -19,24 +19,6 @@
 
 # --------------------------------------------------------------------
 
-"""
-    prepareaffine(img)
-
-Make sure `img` is either a `InvWarpedView` or a `SubArray` of
-one. If that is already the case, `img` will be returned as is.
-Otherwise `invwarpedview` will be called using a `Flat()`
-extrapolation scheme.
-
-Doing this will tell subsequent operations that they should also
-participate as affine operations (i.e. use `AffineMap` if they
-can).
-"""
-prepareaffine(img) = invwarpedview(img, toaffinemap(NoOp(), img), Flat())
-prepareaffine(img::AbstractExtrapolation) = invwarpedview(img, toaffinemap(NoOp(), img))
-@inline prepareaffine(img::SubArray{T,N,<:InvWarpedView}) where {T,N} = img
-@inline prepareaffine(img::InvWarpedView) = img
-prepareaffine(imgs::Tuple) = map(prepareaffine, imgs)
-
 # currently unused
 @inline preparelazy(img) = img
 
@@ -45,11 +27,8 @@ prepareaffine(imgs::Tuple) = map(prepareaffine, imgs)
 
 # discard param if operations doesn't need it
 @inline randparam(op::Operation, img) = nothing
-@inline toaffinemap(op::Operation, img, param) = toaffinemap(op, img)
 
 for FUN in (:applyeager, :applylazy, :applypermute,
-            :applyaffine, :applyaffineview,
-            :applyaffine_common, :applyaffineview_common,
             :applyview, :applystepview)
     @eval begin
         function ($FUN)(op::Operation, imgs::Tuple)
@@ -66,33 +45,17 @@ function applyeager(op::Operation, img::AbstractArray, param)
     maybe_copy(applylazy(op, img, param))
 end
 
-function applyaffineview(op::Operation, img::AbstractArray, param)
-    wv = applyaffine(op, img, param)
-    direct_view(wv, axes(wv))
-end
-
-function applyaffine(op::AffineOperation, img::AbstractArray, param)
-    invwarpedview(img, toaffinemap(op, img, param))
-end
-
-# Allow affine operations to omit specifying a custom
-# "applylazy". On the other hand this also makes sure that a
-# custom implementation of "applylazy" is preferred over
-# "applylazy_fallback" which by default just calls "applyaffine".
-function applylazy(op::AffineOperation, img::AbstractArray, param)
-    _applylazy(op, img, param)
-end
 
 # The purpose of having a separate "_applylazy" is to not
 # force "applylazy" implementations to specify the type of "img",
 # when typeof(img) <: AbstractArray.
-function _applylazy(op::AffineOperation, img::InvWarpedView, param)
-    applyaffine(op, img, param)
-end
-
-function _applylazy(op::AffineOperation, img::SubArray{T,N,<:InvWarpedView}, param) where {T,N}
-    applyaffine(op, img, param)
-end
+# function _applylazy(op::AffineOperation, img::InvWarpedView, param)
+#     applyaffine(op, img, param)
+# end
+#
+# function _applylazy(op::AffineOperation, img::SubArray{T,N,<:InvWarpedView}, param) where {T,N}
+#     applyaffine(op, img, param)
+# end
 
 function _applylazy(op::AffineOperation, img, param)
     applylazy_fallback(op, img, param)

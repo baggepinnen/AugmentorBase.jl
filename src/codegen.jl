@@ -94,7 +94,7 @@ end
 #
 # Example:
 #
-#   julia> Augmentor.augment_impl(Rotate(45) |> Scale(0.9) |> CacheIntermediate() |> FlipX() |> FlipY())
+#   julia> AugmentorBase.augment_impl(Rotate(45) |> Scale(0.9) |> CacheIntermediate() |> FlipX() |> FlipY())
 #   quote
 #       img_1 = input_image
 #       begin

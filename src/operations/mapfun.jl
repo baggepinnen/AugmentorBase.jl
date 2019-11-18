@@ -1,5 +1,5 @@
 """
-    MapFun <: Augmentor.Operation
+    MapFun <: AugmentorBase.Operation
 
 Description
 --------------
@@ -66,7 +66,7 @@ function Base.show(io::IO, op::MapFun)
     if get(io, :compact, false)
         print(io, "Map function \"", op.fun, "\" over image")
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end
@@ -74,7 +74,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    AggregateThenMapFun <: Augmentor.Operation
+    AggregateThenMapFun <: AugmentorBase.Operation
 
 Description
 --------------
@@ -146,7 +146,7 @@ function Base.show(io::IO, op::AggregateThenMapFun)
     if get(io, :compact, false)
         print(io, "Map result of \"", op.aggfun, "\" using \"", op.mapfun, "\" over image")
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end

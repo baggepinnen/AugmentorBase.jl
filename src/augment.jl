@@ -26,8 +26,8 @@ input2 = Gray.(testpattern())
 out1, out2 = augment((input1, input2), FlipX() |> FlipY())
 ```
 
-The parameter `pipeline` can be a `Augmentor.Pipeline`, a tuple
-of `Augmentor.Operation`, or a single `Augmentor.Operation`.
+The parameter `pipeline` can be a `AugmentorBase.Pipeline`, a tuple
+of `AugmentorBase.Operation`, or a single `AugmentorBase.Operation`.
 
 ```julia
 input = testpattern()
@@ -95,8 +95,8 @@ outs = (similar(inputs[1]), similar(inputs[2]))
 augment!(outs, inputs, FlipX() |> FlipY())
 ```
 
-The parameter `pipeline` can be a `Augmentor.Pipeline`, a tuple
-of `Augmentor.Operation`, or a single `Augmentor.Operation`.
+The parameter `pipeline` can be a `AugmentorBase.Pipeline`, a tuple
+of `AugmentorBase.Operation`, or a single `AugmentorBase.Operation`.
 
 ```julia
 input = testpattern()

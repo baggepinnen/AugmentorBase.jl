@@ -1,3 +1,3 @@
 # AugmentorBase
 
-The base functionality of [Augmentor.jl](https://github.com/Evizero/Augmentor.jl) extracted into a package for easy extension to various domains.
+The base functionality of [AugmentorBase.jl](https://github.com/Evizero/AugmentorBase.jl) extracted into a package for easy extension to various domains.

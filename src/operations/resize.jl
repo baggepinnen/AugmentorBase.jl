@@ -1,5 +1,5 @@
 """
-    Resize <: Augmentor.ArrayOperation
+    Resize <: AugmentorBase.ArrayOperation
 
 Description
 --------------
@@ -94,6 +94,6 @@ function Base.show(io::IO, op::Resize{N}) where {N}
             print(io, "Resize to $(op.size)")
         end
     else
-        print(io, "Augmentor.", typeof(op), "($(op.size))")
+        print(io, "AugmentorBase.", typeof(op), "($(op.size))")
     end
 end

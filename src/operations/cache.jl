@@ -1,5 +1,5 @@
 """
-    CacheIntermediate <: Augmentor.ImageOperation
+    CacheIntermediate <: AugmentorBase.ImageOperation
 
 Description
 --------------
@@ -63,7 +63,7 @@ function Base.show(io::IO, op::CacheIntermediate)
     if get(io, :compact, false)
         print(io, "Cache into temporary buffer")
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end
@@ -71,7 +71,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    CacheIntermediateInto <: Augmentor.ImageOperation
+    CacheIntermediateInto <: AugmentorBase.ImageOperation
 
 see [`CacheIntermediate`](@ref)
 """

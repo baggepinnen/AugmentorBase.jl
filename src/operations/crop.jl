@@ -1,5 +1,5 @@
 """
-    Crop <: Augmentor.ArrayOperation
+    Crop <: AugmentorBase.ArrayOperation
 
 Description
 --------------
@@ -62,15 +62,10 @@ Crop(::Tuple{}) = throw(MethodError(Crop, ((),)))
 Crop(indices::AbstractRange...) = Crop(indices)
 
 @inline supports_eager(::Type{<:Crop})      = false
-@inline supports_affineview(::Type{<:Crop}) = true
 @inline supports_view(::Type{<:Crop})       = true
 @inline supports_stepview(::Type{<:Crop})   = true
 
 @inline applylazy(op::Crop, img::AbstractArray, param) = applyview(op, img, param)
-
-function applyaffineview(op::Crop, img::AbstractArray, param)
-    applyview(op, prepareaffine(img), param)
-end
 
 function applyview(op::Crop, img::AbstractArray, param)
     indirect_view(img, op.indices)
@@ -88,14 +83,14 @@ function Base.show(io::IO, op::Crop{N}) where N
             print(io, "Crop region $(op.indices)")
         end
     else
-        print(io, "Augmentor.", typeof(op).name, "{$N}($(op.indices))")
+        print(io, "AugmentorBase.", typeof(op).name, "{$N}($(op.indices))")
     end
 end
 
 # --------------------------------------------------------------------
 
 """
-    CropNative <: Augmentor.ArrayOperation
+    CropNative <: AugmentorBase.ArrayOperation
 
 Description
 --------------
@@ -163,15 +158,10 @@ CropNative(::Tuple{}) = throw(MethodError(CropNative, ((),)))
 CropNative(indices::AbstractRange...) = CropNative(indices)
 
 @inline supports_eager(::Type{<:CropNative})      = false
-@inline supports_affineview(::Type{<:CropNative}) = true
 @inline supports_view(::Type{<:CropNative})       = true
 @inline supports_stepview(::Type{<:CropNative})   = true
 
 @inline applylazy(op::CropNative, img::AbstractArray, param) = applyview(op, img, param)
-
-function applyaffineview(op::CropNative, img::AbstractArray, param)
-    applyview(op, prepareaffine(img), param)
-end
 
 function applyview(op::CropNative, img::AbstractArray, param)
     direct_view(img, op.indices)
@@ -193,14 +183,14 @@ function Base.show(io::IO, op::CropNative{N}) where N
             print(io, "Crop native region $(op.indices)")
         end
     else
-        print(io, "Augmentor.", typeof(op).name, "{$N}($(op.indices))")
+        print(io, "AugmentorBase.", typeof(op).name, "{$N}($(op.indices))")
     end
 end
 
 # --------------------------------------------------------------------
 
 """
-    CropSize <: Augmentor.ArrayOperation
+    CropSize <: AugmentorBase.ArrayOperation
 
 Description
 --------------
@@ -255,7 +245,6 @@ CropSize(size::Int...) = CropSize(size)
 CropSize(; width=64, height=64) = CropSize((height,width))
 
 @inline supports_eager(::Type{<:CropSize})      = false
-@inline supports_affineview(::Type{<:CropSize}) = true
 @inline supports_view(::Type{<:CropSize})       = true
 @inline supports_stepview(::Type{<:CropSize})   = true
 
@@ -268,9 +257,6 @@ end
 
 @inline applylazy(op::CropSize, img::AbstractArray, param) = applyview(op, img, param)
 
-function applyaffineview(op::CropSize, img::AbstractArray, param)
-    applyview(op, prepareaffine(img), param)
-end
 
 function applyview(op::CropSize, img::AbstractArray, param)
     direct_view(img, Tuple(cropsize_axes(op, img)))
@@ -293,14 +279,14 @@ function Base.show(io::IO, op::CropSize{N}) where N
             print(io, "Crop a $(join(op.size,"×")) window around the center")
         end
     else
-        print(io, "Augmentor.", typeof(op), "($(op.size))")
+        print(io, "AugmentorBase.", typeof(op), "($(op.size))")
     end
 end
 
 # --------------------------------------------------------------------
 
 """
-    CropRatio <: Augmentor.ArrayOperation
+    CropRatio <: AugmentorBase.ArrayOperation
 
 Description
 --------------
@@ -355,7 +341,6 @@ end
 CropRatio(; ratio = 1.) = CropRatio(ratio)
 
 @inline supports_eager(::Type{CropRatio})      = false
-@inline supports_affineview(::Type{CropRatio}) = true
 @inline supports_view(::Type{CropRatio})       = true
 @inline supports_stepview(::Type{CropRatio})   = true
 
@@ -375,10 +360,6 @@ function cropratio_axes(op::CropRatio, img::AbstractMatrix)
 end
 
 @inline applylazy(op::CropRatio, img::AbstractArray, param) = applyview(op, img, param)
-
-function applyaffineview(op::CropRatio, img::AbstractArray, param)
-    applyview(op, prepareaffine(img), param)
-end
 
 # FIX - convert to TUPLE expensive
 function applyview(op::CropRatio, img::AbstractArray, param)
@@ -420,7 +401,7 @@ function Base.show(io::IO, op::CropRatio)
     if get(io, :compact, false)
         print(io, "Crop to ", ratio2str(op.ratio), " aspect ratio")
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end
@@ -428,7 +409,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    RCropRatio <: Augmentor.ArrayOperation
+    RCropRatio <: AugmentorBase.ArrayOperation
 
 Description
 --------------
@@ -482,7 +463,6 @@ end
 RCropRatio(; ratio = 1.) = RCropRatio(ratio)
 
 @inline supports_eager(::Type{RCropRatio})      = false
-@inline supports_affineview(::Type{RCropRatio}) = true
 @inline supports_view(::Type{RCropRatio})       = true
 @inline supports_stepview(::Type{RCropRatio})   = true
 
@@ -520,10 +500,6 @@ function applylazy(op::RCropRatio, img::AbstractArray, inds)
     applyview(op, img, inds)
 end
 
-function applyaffineview(op::RCropRatio, img::AbstractArray, inds)
-    applyview(op, prepareaffine(img), inds)
-end
-
 function applyview(op::RCropRatio, img::AbstractArray, inds)
     indirect_view(img, inds)
 end
@@ -540,7 +516,7 @@ function Base.show(io::IO, op::RCropRatio)
     if get(io, :compact, false)
         print(io, "Crop random window with ", ratio2str(op.ratio), " aspect ratio")
     else
-        print(io, "Augmentor.")
+        print(io, "AugmentorBase.")
         showconstruction(io, op)
     end
 end

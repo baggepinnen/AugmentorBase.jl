@@ -1,5 +1,5 @@
 """
-    Either <: Augmentor.Operation
+    Either <: AugmentorBase.Operation
 
 Description
 --------------
@@ -36,7 +36,7 @@ Usage
 Arguments
 --------------
 
-- **`operations`** : `NTuple` or `Vararg` of `Augmentor.Operation`
+- **`operations`** : `NTuple` or `Vararg` of `AugmentorBase.Operation`
     that denote the possible choices to sample from when applied.
 
 - **`chances`** : Optional. Denotes the relative chances for an
@@ -47,7 +47,7 @@ Arguments
     argument. If omitted every operation will have equal
     probability of occurring.
 
-- **`pairs`** : `Vararg` of `Pair{<:Real,<:Augmentor.Operation}`.
+- **`pairs`** : `Vararg` of `Pair{<:Real,<:AugmentorBase.Operation}`.
     A compact way to specify an operation and its chance of
     occurring together.
 
@@ -118,9 +118,7 @@ Base.:*(op1::Operation, ops::Operation...) = Either((op1, ops...))
 
 for FUN in (:supports_view,
             :supports_stepview,
-            :supports_permute,
-            :supports_affine,
-            :supports_affineview)
+            :supports_permute)
     # A predicate must be true for all the contained operations,
     # in order for it to be true for the "Either" containing them.
     @eval @inline ($FUN)(::Type{Either{N,T}}) where {N,T} =
@@ -142,35 +140,21 @@ end
 #   "InvWarpedView", otherwise the preference is
 #   view > stepview > permute > affine > affineview
 @generated function applylazy(op::Either, img::AbstractArray, idx)
-    if isinvwarpedview(img) && supports_affine(op)
-        :(applyaffine(op, img, idx))
-    elseif isinvwarpedview(img) && supports_affineview(op)
-        :(applyaffineview(op, img, idx))
-    elseif supports_view(op)
+    # if isinvwarpedview(img) && supports_affine(op)
+    #     :(applyaffine(op, img, idx))
+    # elseif isinvwarpedview(img) && supports_affineview(op)
+    #     :(applyaffineview(op, img, idx))
+    if supports_view(op)
         :(applyview(op, img, idx))
     elseif supports_stepview(op)
         :(applystepview(op, img, idx))
     elseif supports_permute(op)
         :(applypermute(op, img, idx))
-    elseif supports_affine(op)
-        :(applyaffine(op, prepareaffine(img), idx))
-    elseif supports_affineview(op)
-        :(applyaffineview(op, prepareaffine(img), idx))
     else
         :(throw(MethodError(applylazy, (op, img, idx))))
     end
 end
 
-@inline isinvwarpedview(::Type{SubArray{T,N,P,I,L}}) where {T,N,P<:InvWarpedView,I,L} = true
-@inline isinvwarpedview(::Type{<:InvWarpedView}) = true
-@inline isinvwarpedview(::Type) = false
-
-# Only provided for the sake of interface completeness (not used)
-function toaffinemap(op::Either, img, idx)
-    supports_affine(typeof(op)) || throw(MethodError(toaffinemap, (op, img, idx)))
-    op_inner = op.operations[idx]
-    toaffinemap_common(op_inner, img, randparam(op_inner, img))
-end
 
 # To preserve type stability of "applyeager", always promote
 # arrays to offset arrays
@@ -186,10 +170,10 @@ end
 #   "AffineMap" may differ from one operation to the next
 #   (e.g. "Rotate" uses a "RotMatrix" by default, while "Scale"
 #   for obvious reasons does not)
-for KIND in (:permute, :view, :stepview, :affine, :affineview)
+for KIND in (:permute, :view, :stepview)
     FUN = Symbol(:apply, KIND)
     SUP = Symbol(:supports_, KIND)
-    APP = startswith(String(KIND),"affine") ? Symbol(FUN, :_common) : FUN
+    APP = FUN
     @eval function ($FUN)(op::Either, img::AbstractArray, idx)
         ($SUP)(typeof(op)) || throw(MethodError($FUN, (op, img, idx)))
         ($APP)(op.operations[idx], img)
@@ -222,7 +206,7 @@ function Base.show(io::IO, op::Either)
             print(io, '.')
         end
     else
-        print(io, "Augmentor.", typeof(op).name, " (1 out of ", length(op.operations), " operation(s)):")
+        print(io, "AugmentorBase.", typeof(op).name, " (1 out of ", length(op.operations), " operation(s)):")
         percent_int   = map(c->round(Int, c*100), op.chances)
         percent_float = map(c->round(c*100, digits=1), op.chances)
         percent = if any(i != f for (i,f) in zip(percent_int,percent_float))

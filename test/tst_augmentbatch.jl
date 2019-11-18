@@ -9,7 +9,7 @@ ops = (Rotate180(),Crop(5:200,200:500),Rotate90(1),Crop(1:250, 1:150))
     @test_reference "reference/rot_crop_either_crop.txt" out[:,:,1]
     @test_reference "reference/rot_crop_either_crop.txt" out[:,:,2]
     out = similar(camera, 250, 150, 2)
-    @test @inferred(augmentbatch!(out, cameras, Augmentor.ImmutablePipeline(ops))) === out
+    @test @inferred(augmentbatch!(out, cameras, AugmentorBase.ImmutablePipeline(ops))) === out
     @test typeof(out) <: Array
     @test eltype(out) <: eltype(camera)
     @test_reference "reference/rot_crop_either_crop.txt" out[:,:,1]
@@ -69,7 +69,7 @@ end
     @test_reference "reference/rot_crop_either_crop.txt" out[:,:,1]
     @test_reference "reference/rot_crop_either_crop.txt" out[:,:,2]
     out = similar(camera, 250, 150, 2)
-    @test @inferred(augmentbatch!(CPUThreads(), out, cameras, Augmentor.ImmutablePipeline(ops))) === out
+    @test @inferred(augmentbatch!(CPUThreads(), out, cameras, AugmentorBase.ImmutablePipeline(ops))) === out
     @test typeof(out) <: Array
     @test eltype(out) <: eltype(camera)
     @test_reference "reference/rot_crop_either_crop.txt" out[:,:,1]
