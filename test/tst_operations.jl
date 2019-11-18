@@ -22,7 +22,7 @@ ops = (Zoom(2.), NoOp()) # make sure Zoom sticks
 @testset "$(str_showcompact(ops))" begin
     wv = @inferred Augmentor.unroll_applyaffine(ops, rect)
     @test typeof(wv) <: SubArray
-    @test indices(wv) == (1:2,1:3)
+    @test axes(wv) == (1:2,1:3)
 end
 
 ops = (FlipX(), FlipY())
@@ -116,7 +116,7 @@ ops = (Rotate90(), Rotate270(), Rotate180())
     @test wv[1:2,1:3] == rot180(rect)
     wv2 = @inferred Augmentor.unroll_applylazy(ops, Augmentor.prepareaffine(rect))
     @test typeof(wv2) === typeof(invwarpedview(rect, Augmentor.toaffinemap(NoOp(),rect), Flat()))
-    @test wv2 == wv
+    @test wv2 === wv
     v = @inferred Augmentor.unroll_applylazy(ops, rect)
     @test v === view(rect, 2:-1:1, 3:-1:1)
     @test v == rot180(rect)
@@ -129,7 +129,7 @@ ops = (Rotate180(), Either((Rotate90(), Rotate270()), (1,0)))
     r1 = invwarpedview(square, Augmentor.toaffinemap(Rotate180(),square), Flat())
     @test wv == invwarpedview(r1, Augmentor.toaffinemap(Rotate90(), r1))
     wv2 = @inferred Augmentor.unroll_applylazy(ops, Augmentor.prepareaffine(square))
-    @test wv2 == wv
+    @test wv2 === wv
     v = @inferred Augmentor.unroll_applylazy(ops, rect)
     @test v === view(permuteddimsview(rect, (2,1)), 1:1:3, 2:-1:1)
     @test v == rotl90(rot180(rect))
@@ -139,13 +139,14 @@ ops = (Crop(1:2,2:3), Either((Rotate90(), Rotate270()), (1,0)))
 @testset "$(str_showcompact(ops))" begin
     wv = @inferred Augmentor.unroll_applyaffine(ops, square)
     @test typeof(wv) <: SubArray
-    @test typeof(wv.indexes) <: Tuple{Vararg{IdentityRange}}
+    @test typeof(wv.indices) <: Tuple{Vararg{IdentityRange}}
     @test typeof(parent(wv)) <: InvWarpedView
     @test parent(parent(wv)).itp.coefs === square
     @test parent(copy(wv)) == rotl90(view(square, 1:2, 2:3))
     wv2 = @inferred Augmentor.unroll_applylazy(ops, Augmentor.prepareaffine(square))
     @test wv2 == wv
     @test typeof(wv2) == typeof(wv)
+
     v = @inferred Augmentor.unroll_applylazy(ops, square)
     @test v === view(permuteddimsview(square,(2,1)), 3:-1:2, 1:1:2)
     @test v == rotl90(view(square, 1:2, 2:3))
@@ -155,7 +156,7 @@ ops = (Rotate180(), CropNative(1:2,2:3))
 @testset "$(str_showcompact(ops))" begin
     wv = @inferred Augmentor.unroll_applyaffine(ops, square)
     @test typeof(wv) <: SubArray
-    @test typeof(wv.indexes) <: Tuple{Vararg{IdentityRange}}
+    @test typeof(wv.indices) <: Tuple{Vararg{IdentityRange}}
     @test typeof(parent(wv)) <: InvWarpedView
     @test parent(parent(wv)).itp.coefs === square
     @test wv == view(rot180(square), IdentityRange(1:2), IdentityRange(2:3))
@@ -179,7 +180,7 @@ ops = (Rotate180(), CropSize(2,2))
 @testset "$(str_showcompact(ops))" begin
     wv = @inferred Augmentor.unroll_applyaffine(ops, square)
     @test typeof(wv) <: SubArray
-    @test typeof(wv.indexes) <: Tuple{Vararg{IdentityRange}}
+    @test typeof(wv.indices) <: Tuple{Vararg{IdentityRange}}
     @test typeof(parent(wv)) <: InvWarpedView
     @test parent(parent(wv)).itp.coefs === square
     @test wv == view(rot180(square), IdentityRange(1:2), IdentityRange(2:3))
@@ -195,7 +196,7 @@ ops = (Either((Rotate90(),Rotate270()),(1,0)), Crop(20:30,100:150), Either((Rota
 @testset "$(str_showcompact(ops))" begin
     wv = @inferred Augmentor.unroll_applyaffine(ops, camera)
     @test typeof(wv) <: SubArray
-    @test typeof(wv.indexes) <: Tuple{Vararg{IdentityRange}}
+    @test typeof(wv.indices) <: Tuple{Vararg{IdentityRange}}
     @test typeof(parent(wv)) <: InvWarpedView
     @test parent(parent(wv)).itp.coefs === camera
     @test parent(copy(wv)) == rotr90(view(rotl90(camera), 20:30, 100:150))

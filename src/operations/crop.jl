@@ -1,5 +1,5 @@
 """
-    Crop <: Augmentor.ImageOperation
+    Crop <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -11,7 +11,7 @@ for the rectangle that starts at `x=2` and `y=5` in the top left
 corner and ends at `x=10` and `y=100` in the bottom right corner.
 As we can see the y-axis is specified first, because that is how
 the image is stored in an array. Thus the order of the provided
-indices ranges needs to reflect the order of the array
+axes ranges needs to reflect the order of the array
 dimensions.
 
 Usage
@@ -26,7 +26,7 @@ Arguments
 
 - **`indices`** : `NTuple` or `Vararg` of `UnitRange` that denote
     the cropping range for each array dimension. This is very
-    similar to how the indices for `view` are specified.
+    similar to how the axes for `view` are specified.
 
 See also
 --------------
@@ -48,18 +48,18 @@ julia> augment(img, Crop(1:30, 361:400)) # crop upper right corner
 [...]
 ```
 """
-struct Crop{N,I<:Tuple} <: ImageOperation
-    indexes::I
+struct Crop{N,I<:Tuple} <: ArrayOperation
+    indices::I
 
-    function Crop{N}(indexes::NTuple{N,UnitRange}) where N
-        new{N,typeof(indexes)}(indexes)
+    function Crop{N}(indices::NTuple{N,UnitRange}) where N
+        new{N,typeof(indices)}(indices)
     end
 end
-function Crop(indexes::NTuple{N,AbstractUnitRange}) where N
-    Crop{N}(map(UnitRange, indexes))
+function Crop(indices::NTuple{N,AbstractUnitRange}) where N
+    Crop{N}(map(UnitRange, indices))
 end
 Crop(::Tuple{}) = throw(MethodError(Crop, ((),)))
-Crop(indexes::Range...) = Crop(indexes)
+Crop(indices::AbstractRange...) = Crop(indices)
 
 @inline supports_eager(::Type{<:Crop})      = false
 @inline supports_affineview(::Type{<:Crop}) = true
@@ -73,29 +73,29 @@ function applyaffineview(op::Crop, img::AbstractArray, param)
 end
 
 function applyview(op::Crop, img::AbstractArray, param)
-    indirect_view(img, op.indexes)
+    indirect_view(img, op.indices)
 end
 
 function applystepview(op::Crop, img::AbstractArray, param)
-    indirect_view(img, map(StepRange, op.indexes))
+    indirect_view(img, map(StepRange, op.indices))
 end
 
 function Base.show(io::IO, op::Crop{N}) where N
     if get(io, :compact, false)
         if N == 2
-            print(io, "Crop region $(op.indexes[1])×$(op.indexes[2])")
+            print(io, "Crop region $(op.indices[1])×$(op.indices[2])")
         else
-            print(io, "Crop region $(op.indexes)")
+            print(io, "Crop region $(op.indices)")
         end
     else
-        print(io, typeof(op).name, "{$N}($(op.indexes))")
+        print(io, "Augmentor.", typeof(op).name, "{$N}($(op.indices))")
     end
 end
 
 # --------------------------------------------------------------------
 
 """
-    CropNative <: Augmentor.ImageOperation
+    CropNative <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -128,7 +128,7 @@ Arguments
 
 - **`indices`** : `NTuple` or `Vararg` of `UnitRange` that denote
     the cropping range for each array dimension. This is very
-    similar to how the indices for `view` are specified.
+    similar to how the axes for `view` are specified.
 
 See also
 --------------
@@ -149,18 +149,18 @@ augment(img, Rotate(45) |> Crop(1:300, 1:400))
 augment(img, Rotate(45) |> CropNative(1:300, 1:400))
 ```
 """
-struct CropNative{N,I<:Tuple} <: ImageOperation
-    indexes::I
+struct CropNative{N,I<:Tuple} <: ArrayOperation
+    indices::I
 
-    function CropNative{N}(indexes::NTuple{N,UnitRange}) where N
-        new{N,typeof(indexes)}(indexes)
+    function CropNative{N}(indices::NTuple{N,UnitRange}) where N
+        new{N,typeof(indices)}(indices)
     end
 end
-function CropNative(indexes::NTuple{N,AbstractUnitRange}) where N
-    CropNative{N}(map(UnitRange, indexes))
+function CropNative(indices::NTuple{N,AbstractUnitRange}) where N
+    CropNative{N}(map(UnitRange, indices))
 end
 CropNative(::Tuple{}) = throw(MethodError(CropNative, ((),)))
-CropNative(indexes::Range...) = CropNative(indexes)
+CropNative(indices::AbstractRange...) = CropNative(indices)
 
 @inline supports_eager(::Type{<:CropNative})      = false
 @inline supports_affineview(::Type{<:CropNative}) = true
@@ -174,33 +174,33 @@ function applyaffineview(op::CropNative, img::AbstractArray, param)
 end
 
 function applyview(op::CropNative, img::AbstractArray, param)
-    direct_view(img, op.indexes)
+    direct_view(img, op.indices)
 end
 
 function applystepview(op::CropNative, img::AbstractArray, param)
-    direct_view(img, map(StepRange, op.indexes))
+    direct_view(img, map(StepRange, op.indices))
 end
 
 function showconstruction(io::IO, op::Union{Crop,CropNative})
-    print(io, typeof(op).name.name, '(', join(map(string, op.indexes),", "), ')')
+    print(io, typeof(op).name.name, '(', join(map(string, op.indices),", "), ')')
 end
 
 function Base.show(io::IO, op::CropNative{N}) where N
     if get(io, :compact, false)
         if N == 2
-            print(io, "Crop native region $(op.indexes[1])×$(op.indexes[2])")
+            print(io, "Crop native region $(op.indices[1])×$(op.indices[2])")
         else
-            print(io, "Crop native region $(op.indexes)")
+            print(io, "Crop native region $(op.indices)")
         end
     else
-        print(io, typeof(op).name, "{$N}($(op.indexes))")
+        print(io, "Augmentor.", typeof(op).name, "{$N}($(op.indices))")
     end
 end
 
 # --------------------------------------------------------------------
 
 """
-    CropSize <: Augmentor.ImageOperation
+    CropSize <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -241,7 +241,7 @@ img = testpattern()
 augment(img, Rotate(45) |> CropSize(300, 400))
 ```
 """
-struct CropSize{N} <: ImageOperation
+struct CropSize{N} <: ArrayOperation
     size::NTuple{N,Int}
 
     function CropSize{N}(size::NTuple{N,Int}) where N
@@ -259,11 +259,11 @@ CropSize(; width=64, height=64) = CropSize((height,width))
 @inline supports_view(::Type{<:CropSize})       = true
 @inline supports_stepview(::Type{<:CropSize})   = true
 
-function cropsize_indices(op::CropSize, img::AbstractArray)
-    cntr = convert(Tuple, center(img))
+function cropsize_axes(op::CropSize, img::AbstractArray)
+    cntr = center(img)
     sze = op.size
     corner = map((ci,si)->floor(Int,ci)-floor(Int,si/2)+!isinteger(ci), cntr, sze)
-    map((b,s)->b:(b+s-1), corner, sze)
+    map((b,s)->b:b+s-1, corner, sze)
 end
 
 @inline applylazy(op::CropSize, img::AbstractArray, param) = applyview(op, img, param)
@@ -273,11 +273,12 @@ function applyaffineview(op::CropSize, img::AbstractArray, param)
 end
 
 function applyview(op::CropSize, img::AbstractArray, param)
-    direct_view(img, cropsize_indices(op, img))
+    direct_view(img, Tuple(cropsize_axes(op, img)))
 end
 
+# . vs map saves 1 alloc
 function applystepview(op::CropSize, img::AbstractArray, param)
-    direct_view(img, map(StepRange, cropsize_indices(op, img)))
+    direct_view(img, Tuple(StepRange.(cropsize_axes(op, img))))
 end
 
 function showconstruction(io::IO, op::CropSize)
@@ -292,14 +293,14 @@ function Base.show(io::IO, op::CropSize{N}) where N
             print(io, "Crop a $(join(op.size,"×")) window around the center")
         end
     else
-        print(io, typeof(op), "($(op.size))")
+        print(io, "Augmentor.", typeof(op), "($(op.size))")
     end
 end
 
 # --------------------------------------------------------------------
 
 """
-    CropRatio <: Augmentor.ImageOperation
+    CropRatio <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -343,7 +344,7 @@ img = testpattern()
 augment(img, CropRatio(1))
 ```
 """
-struct CropRatio <: ImageOperation
+struct CropRatio <: ArrayOperation
     ratio::Float64
 
     function CropRatio(ratio::Real)
@@ -358,8 +359,8 @@ CropRatio(; ratio = 1.) = CropRatio(ratio)
 @inline supports_view(::Type{CropRatio})       = true
 @inline supports_stepview(::Type{CropRatio})   = true
 
-function cropratio_indices(op::CropRatio, img::AbstractMatrix)
-    h, w = map(length, indices(img))
+function cropratio_axes(op::CropRatio, img::AbstractMatrix)
+    h, w = map(length, axes(img))
     ratio = op.ratio
     # compute new size based on ratio
     nw = floor(Int, h * ratio)
@@ -367,8 +368,8 @@ function cropratio_indices(op::CropRatio, img::AbstractMatrix)
     nw = nw > 1 ? nw : 1
     nh = nh > 1 ? nh : 1
     sze = nh < h ? nh : h, nw < w ? nw : w
-    # compute indices around center for given size
-    cntr = convert(Tuple, center(img))
+    # compute axes around center for given size
+    cntr = center(img)
     corner = map((ci,si)->floor(Int,ci)-floor(Int,si/2)+!isinteger(ci), cntr, sze)
     map((b,s)->b:(b+s-1), corner, sze)
 end
@@ -379,12 +380,15 @@ function applyaffineview(op::CropRatio, img::AbstractArray, param)
     applyview(op, prepareaffine(img), param)
 end
 
+# FIX - convert to TUPLE expensive
 function applyview(op::CropRatio, img::AbstractArray, param)
-    direct_view(img, cropratio_indices(op, img))
+    direct_view(img, Tuple(cropratio_axes(op, img)))
 end
 
+# FIX - convert to TUPLE expensive
+# . vs map saves 1 alloc
 function applystepview(op::CropRatio, img::AbstractArray, param)
-    direct_view(img, map(StepRange, cropratio_indices(op, img)))
+    direct_view(img, Tuple(StepRange.(cropratio_axes(op, img))))
 end
 
 function ratio2str(ratio)
@@ -397,18 +401,18 @@ function ratio2str(ratio)
     found = false
     for i = 1:20
         high = i * high0
-        if round(high) == round(high,2)
+        if round(high) == round(high, digits=2)
             low = i
             found = true
             break
         end
     end
     if !found
-        string(round(ratio,2))
+        string(round(ratio, digits=2))
     elseif ratio >= 1
-        string(round(Int,high), ':', low)
+        string(round(Int, high), ':', low)
     else
-        string(low, ':', round(Int,high))
+        string(low, ':', round(Int, high))
     end
 end
 
@@ -424,7 +428,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    RCropRatio <: Augmentor.ImageOperation
+    RCropRatio <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -467,7 +471,7 @@ img = testpattern()
 augment(img, RCropRatio(1))
 ```
 """
-struct RCropRatio <: ImageOperation
+struct RCropRatio <: ArrayOperation
     ratio::Float64
 
     function RCropRatio(ratio::Real)
@@ -482,8 +486,8 @@ RCropRatio(; ratio = 1.) = RCropRatio(ratio)
 @inline supports_view(::Type{RCropRatio})       = true
 @inline supports_stepview(::Type{RCropRatio})   = true
 
-function rcropratio_indices(op::RCropRatio, img::AbstractMatrix)
-    h, w = map(length, indices(img))
+function rcropratio_axes(op::RCropRatio, img::AbstractMatrix)
+    h, w = map(length, axes(img))
     ratio = op.ratio
     # compute new size based on ratio
     nw = floor(Int, h * ratio)
@@ -508,8 +512,9 @@ function rcropratio_indices(op::RCropRatio, img::AbstractMatrix)
     end
 end
 
-randparam(op::RCropRatio, imgs::Tuple) = rcropratio_indices(op, imgs[1])
-randparam(op::RCropRatio, img::AbstractArray) = rcropratio_indices(op, img)
+# CHECK THIS
+randparam(op::RCropRatio, imgs::Tuple) = rcropratio_axes(op, imgs[1])
+randparam(op::RCropRatio, img::AbstractArray) = rcropratio_axes(op, img)
 
 function applylazy(op::RCropRatio, img::AbstractArray, inds)
     applyview(op, img, inds)

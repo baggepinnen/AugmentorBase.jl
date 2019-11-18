@@ -1,5 +1,5 @@
 """
-    CacheImage <: Augmentor.ImageOperation
+    CacheIntermediate <: Augmentor.ImageOperation
 
 Description
 --------------
@@ -18,9 +18,9 @@ interpolation.
 Usage
 --------------
 
-    CacheImage()
+    CacheIntermediate()
 
-    CacheImage(buffer)
+    CacheIntermediate(buffer)
 
 Arguments
 --------------
@@ -40,26 +40,26 @@ Examples
 using Augmentor
 
 # make pipeline that forces caching after elastic distortion
-pl = ElasticDistortion(3,3) |> CacheImage() |> Rotate(-10:10) |> ShearX(-5:5)
+pl = ElasticDistortion(3,3) |> CacheIntermediate() |> Rotate(-10:10) |> ShearX(-5:5)
 
 # cache output of elastic distortion into the allocated
 # 20x20 Matrix{Float64}. Note that for this case this assumes that
 # the input image is also a 20x20 Matrix{Float64}
-pl = ElasticDistortion(3,3) |> CacheImage(zeros(20,20)) |> Rotate(-10:10)
+pl = ElasticDistortion(3,3) |> CacheIntermediate(zeros(20,20)) |> Rotate(-10:10)
 
 # convenience syntax with the same effect as above.
 pl = ElasticDistortion(3,3) |> zeros(20,20) |> Rotate(-10:10)
 ```
 """
-struct CacheImage <: ImageOperation end
+struct CacheIntermediate <: ImageOperation end
 
-applyeager(op::CacheImage, img::AbstractArray, param) = maybe_copy(img)
+applyeager(op::CacheIntermediate, input::AbstractArray, param) = maybe_copy(input)
 
-function showconstruction(io::IO, op::CacheImage)
+function showconstruction(io::IO, op::CacheIntermediate)
     print(io, typeof(op).name.name, "()")
 end
 
-function Base.show(io::IO, op::CacheImage)
+function Base.show(io::IO, op::CacheIntermediate)
     if get(io, :compact, false)
         print(io, "Cache into temporary buffer")
     else
@@ -71,33 +71,33 @@ end
 # --------------------------------------------------------------------
 
 """
-    CacheImageInto <: Augmentor.ImageOperation
+    CacheIntermediateInto <: Augmentor.ImageOperation
 
-see [`CacheImage`](@ref)
+see [`CacheIntermediate`](@ref)
 """
-struct CacheImageInto{T<:Union{AbstractArray,Tuple}} <: ImageOperation
+struct CacheIntermediateInto{T<:Union{AbstractArray,Tuple}} <: ImageOperation
     buffer::T
 end
-CacheImage(buffer::AbstractArray) = CacheImageInto(buffer)
-CacheImage(buffers::AbstractArray...) = CacheImageInto(buffers)
-CacheImage(buffers::NTuple{N,AbstractArray}) where {N} = CacheImageInto(buffers)
+CacheIntermediate(buffer::AbstractArray) = CacheIntermediateInto(buffer)
+CacheIntermediate(buffers::AbstractArray...) = CacheIntermediateInto(buffers)
+CacheIntermediate(buffers::NTuple{N,AbstractArray}) where {N} = CacheIntermediateInto(buffers)
 
-@inline supports_lazy(::Type{<:CacheImageInto}) = true
+@inline supports_lazy(::Type{<:CacheIntermediateInto}) = true
 
-applyeager(op::CacheImageInto, img::AbstractArray, param) = applylazy(op, img)
-applyeager(op::CacheImageInto, img::Tuple) = applylazy(op, img)
+applyeager(op::CacheIntermediateInto, input::AbstractArray, param) = applylazy(op, input)
+applyeager(op::CacheIntermediateInto, input::Tuple) = applylazy(op, input)
 
-function applylazy(op::CacheImageInto, img::Tuple)
-    throw(ArgumentError("Operation $(op) not compatiable with given image(s) ($(summary(img))). This can happen if the amount of images does not match the amount of buffers in the operation"))
+function applylazy(op::CacheIntermediateInto, input::Tuple)
+    throw(ArgumentError("Operation $(op) not compatiable with given image(s) ($(summary(input))). This can happen if the amount of images does not match the amount of buffers in the operation"))
 end
 
-function applylazy(op::CacheImageInto{<:AbstractArray}, img::AbstractArray, param)
-    copy!(match_idx(op.buffer, indices(img)), img)
+function applylazy(op::CacheIntermediateInto{<:AbstractArray}, input::AbstractArray, param)
+    copy!(match_idx(op.buffer, axes(input)), input)
 end
 
-function applylazy(op::CacheImageInto{<:Tuple}, imgs::Tuple)
-    map(op.buffer, imgs) do buffer, img
-        copy!(match_idx(buffer, indices(img)), img)
+function applylazy(op::CacheIntermediateInto{<:Tuple}, inputs::Tuple)
+    map(op.buffer, inputs) do buffer, input
+        copy!(match_idx(buffer, axes(input)), input)
     end
 end
 
@@ -105,18 +105,18 @@ function _showconstruction(io::IO, array::AbstractArray)
     print(io, "Array{")
     _showcolor(io, eltype(array))
     print(io, "}(")
-    print(io, join(map(i->string(length(i)), indices(array)), ", "))
+    print(io, join(map(i->string(length(i)), axes(array)), ", "))
     print(io, ")")
 end
 
-function showconstruction(io::IO, op::CacheImageInto{<:AbstractArray})
-    print(io, "CacheImage(") # shows exported API
+function showconstruction(io::IO, op::CacheIntermediateInto{<:AbstractArray})
+    print(io, "CacheIntermediate(") # shows exported API
     _showconstruction(io, op.buffer)
     print(io, ")")
 end
 
-function showconstruction(io::IO, op::CacheImageInto{<:Tuple})
-    print(io, "CacheImage(")
+function showconstruction(io::IO, op::CacheIntermediateInto{<:Tuple})
+    print(io, "CacheIntermediate(")
     for (i, buffer) in enumerate(op.buffer)
         _showconstruction(io, buffer)
         i < length(op.buffer) && print(io, ", ")
@@ -124,25 +124,25 @@ function showconstruction(io::IO, op::CacheImageInto{<:Tuple})
     print(io, ")")
 end
 
-function Base.show(io::IO, op::CacheImageInto{<:AbstractArray})
+function Base.show(io::IO, op::CacheIntermediateInto{<:AbstractArray})
     if get(io, :compact, false)
         print(io, "Cache into preallocated ")
         print(io, summary(op.buffer))
     else
         print(io, typeof(op).name, "(")
-        showarg(io, op.buffer)
+        Base.showarg(io, op.buffer, false)
         print(io, ")")
     end
 end
 
-function Base.show(io::IO, op::CacheImageInto{<:Tuple})
+function Base.show(io::IO, op::CacheIntermediateInto{<:Tuple})
     if get(io, :compact, false)
         print(io, "Cache into preallocated ")
         print(io, "(", join(map(summary, op.buffer), ", "), ")")
     else
         print(io, typeof(op).name, "((")
         for (i, buffer) in enumerate(op.buffer)
-            showarg(io, buffer)
+            Base.showarg(io, buffer, false)
             i < length(op.buffer) && print(io, ", ")
         end
         print(io, "))")

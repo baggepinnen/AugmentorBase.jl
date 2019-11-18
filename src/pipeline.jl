@@ -26,9 +26,9 @@ Base.:(|>)(op1::Operation, p2::ImmutablePipeline) =
 Base.:(|>)(p1::ImmutablePipeline, p2::ImmutablePipeline) =
     ImmutablePipeline(operations(p1)..., operations(p2)...)
 Base.:(|>)(op1::Operation, buffer::AbstractArray) =
-    ImmutablePipeline(op1, CacheImage(buffer))
+    ImmutablePipeline(op1, CacheIntermediate(buffer))
 Base.:(|>)(p1::ImmutablePipeline, buffer::AbstractArray) =
-    ImmutablePipeline(operations(p1)..., CacheImage(buffer))
+    ImmutablePipeline(operations(p1)..., CacheIntermediate(buffer))
 
 function Base.show(io::IO, pipeline::Pipeline)
     n = length(pipeline)
@@ -44,7 +44,7 @@ function Base.show(io::IO, pipeline::Pipeline)
         for (i, op) in enumerate(ops)
             println(io)
             print(io, lpad(string(i), k+1, " "), ".) ")
-            Base.showcompact(io, op)
+            show(IOContext(io, :compact => true), op)
         end
     end
 end

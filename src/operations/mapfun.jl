@@ -34,14 +34,14 @@ Examples
 
 ```julia
 using Augmentor, ColorTypes
-img = testpattern()
+input = testpattern()
 
 # subtract the constant RGBA value from each pixel
-augment(img, MapFun(px -> px - RGBA(0.5, 0.3, 0.7, 0.0)))
+augment(input, MapFun(px -> px - RGBA(0.5, 0.3, 0.7, 0.0)))
 
 # separate channels to scale each numeric element by a constant value
 pl = SplitChannels() |> MapFun(el -> el * 0.5) |> CombineChannels(RGBA)
-augment(img, pl)
+augment(input, pl)
 ```
 """
 struct MapFun{T} <: Operation
@@ -50,16 +50,16 @@ end
 
 @inline supports_lazy(::Type{<:MapFun}) = true
 
-function applyeager(op::MapFun, img::AbstractArray, param)
-    maybe_copy(map(op.fun, img))
+function applyeager(op::MapFun, input::AbstractArray, param)
+    maybe_copy(map(op.fun, input))
 end
 
-function applylazy(op::MapFun, img::AbstractArray, param)
-    mappedarray(op.fun, img)
+function applylazy(op::MapFun, input::AbstractArray, param)
+    mappedarray(op.fun, input)
 end
 
 function showconstruction(io::IO, op::MapFun)
-    print(io, typeof(op).name.name, '(', op.fun, ')')
+    print(io, nameof(typeof(op)), '(', op.fun, ')')
 end
 
 function Base.show(io::IO, op::MapFun)
@@ -96,7 +96,7 @@ Arguments
 
 - **`aggfun`** : A function that takes the whole current image as
     input and which result will also be passed to `mapfun`. It
-    should have a signature of `img -> agg`, where `img` will the
+    should have a signature of `input -> agg`, where `input` will the
     the current image. What type and value `agg` should be is up
     to the user.
 
@@ -115,10 +115,10 @@ Examples
 
 ```julia
 using Augmentor
-img = testpattern()
+input = testpattern()
 
 # subtract the average RGB value of the current image
-augment(img, AggregateThenMapFun(img -> mean(img), (px, agg) -> px - agg))
+augment(input, AggregateThenMapFun(input -> mean(input), (px, agg) -> px - agg))
 ```
 """
 struct AggregateThenMapFun{A,M} <: Operation
@@ -128,18 +128,18 @@ end
 
 @inline supports_lazy(::Type{<:AggregateThenMapFun}) = true
 
-function applyeager(op::AggregateThenMapFun, img::AbstractArray, param)
-    agg = op.aggfun(img)
-    maybe_copy(map(x -> op.mapfun(x, agg), img))
+function applyeager(op::AggregateThenMapFun, input::AbstractArray, param)
+    agg = op.aggfun(input)
+    maybe_copy(map(x -> op.mapfun(x, agg), input))
 end
 
-function applylazy(op::AggregateThenMapFun, img::AbstractArray, param)
-    agg = op.aggfun(img)
-    mappedarray(x -> op.mapfun(x, agg), img)
+function applylazy(op::AggregateThenMapFun, input::AbstractArray, param)
+    agg = op.aggfun(input)
+    mappedarray(x -> op.mapfun(x, agg), input)
 end
 
 function showconstruction(io::IO, op::AggregateThenMapFun)
-    print(io, typeof(op).name.name, '(', op.aggfun, ", ", op.mapfun, ')')
+    print(io, nameof(typeof(op)), '(', op.aggfun, ", ", op.mapfun, ')')
 end
 
 function Base.show(io::IO, op::AggregateThenMapFun)

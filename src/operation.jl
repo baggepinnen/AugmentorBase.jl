@@ -68,7 +68,7 @@ end
 
 function applyaffineview(op::Operation, img::AbstractArray, param)
     wv = applyaffine(op, img, param)
-    direct_view(wv, indices(wv))
+    direct_view(wv, axes(wv))
 end
 
 function applyaffine(op::AffineOperation, img::AbstractArray, param)
@@ -116,7 +116,8 @@ end
 @generated function toaffinemap_common(op::AffineOperation, img::AbstractArray{T,N}, param) where {T,N}
     quote
         tfm = toaffinemap(op, img, param)
-        AffineMap(SMatrix(tfm.m), SVector(tfm.v))::AffineMap{SArray{Tuple{$N,$N},Float64,$N,$(N*N)},SVector{$N,Float64}}
+	# EDIT: replace .m and .v to linear and transformation
+        AffineMap(SMatrix(tfm.linear), SVector(tfm.translation))::AffineMap{SArray{Tuple{$N,$N},Float64,$N,$(N*N)},SVector{$N,Float64}}
     end
 end
 
@@ -126,7 +127,7 @@ end
 
 function applyaffineview_common(op::AffineOperation, img::AbstractArray, param)
     wv = applyaffine_common(op, img, param)
-    direct_view(wv, indices(wv))
+    direct_view(wv, axes(wv))
 end
 
 # We trust that non-affine operations use SArray-only AffineMap.
