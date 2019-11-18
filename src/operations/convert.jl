@@ -51,12 +51,12 @@ end
 
 @inline supports_lazy(::Type{<:ConvertEltype}) = true
 
-function applyeager(op::ConvertEltype{T}, img::AbstractArray, param) where T
-    maybe_copy(convert(AbstractArray{T}, img))
+function applyeager(op::ConvertEltype{T}, input::AbstractArray, param) where T
+    maybe_copy(convert(AbstractArray{T}, input))
 end
 
-function applylazy(op::ConvertEltype{T}, img::AbstractArray, param) where T
-    mappedarray(c->convert(T,c), img)
+function applylazy(op::ConvertEltype{T}, input::AbstractArray, param) where T
+    mappedarray(c->convert(T,c), input)
 end
 
 function showconstruction(io::IO, op::ConvertEltype)

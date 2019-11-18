@@ -1,5 +1,5 @@
 """
-    Crop <: Augmentor.ImageOperation
+    Crop <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -48,7 +48,7 @@ julia> augment(img, Crop(1:30, 361:400)) # crop upper right corner
 [...]
 ```
 """
-struct Crop{N,I<:Tuple} <: ImageOperation
+struct Crop{N,I<:Tuple} <: ArrayOperation
     indices::I
 
     function Crop{N}(indices::NTuple{N,UnitRange}) where N
@@ -95,7 +95,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    CropNative <: Augmentor.ImageOperation
+    CropNative <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -149,7 +149,7 @@ augment(img, Rotate(45) |> Crop(1:300, 1:400))
 augment(img, Rotate(45) |> CropNative(1:300, 1:400))
 ```
 """
-struct CropNative{N,I<:Tuple} <: ImageOperation
+struct CropNative{N,I<:Tuple} <: ArrayOperation
     indices::I
 
     function CropNative{N}(indices::NTuple{N,UnitRange}) where N
@@ -200,7 +200,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    CropSize <: Augmentor.ImageOperation
+    CropSize <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -241,7 +241,7 @@ img = testpattern()
 augment(img, Rotate(45) |> CropSize(300, 400))
 ```
 """
-struct CropSize{N} <: ImageOperation
+struct CropSize{N} <: ArrayOperation
     size::NTuple{N,Int}
 
     function CropSize{N}(size::NTuple{N,Int}) where N
@@ -300,7 +300,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    CropRatio <: Augmentor.ImageOperation
+    CropRatio <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -344,7 +344,7 @@ img = testpattern()
 augment(img, CropRatio(1))
 ```
 """
-struct CropRatio <: ImageOperation
+struct CropRatio <: ArrayOperation
     ratio::Float64
 
     function CropRatio(ratio::Real)
@@ -428,7 +428,7 @@ end
 # --------------------------------------------------------------------
 
 """
-    RCropRatio <: Augmentor.ImageOperation
+    RCropRatio <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -471,7 +471,7 @@ img = testpattern()
 augment(img, RCropRatio(1))
 ```
 """
-struct RCropRatio <: ImageOperation
+struct RCropRatio <: ArrayOperation
     ratio::Float64
 
     function RCropRatio(ratio::Real)

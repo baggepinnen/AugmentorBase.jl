@@ -1,5 +1,5 @@
 """
-    Either <: Augmentor.ImageOperation
+    Either <: Augmentor.Operation
 
 Description
 --------------
@@ -36,7 +36,7 @@ Usage
 Arguments
 --------------
 
-- **`operations`** : `NTuple` or `Vararg` of `Augmentor.ImageOperation`
+- **`operations`** : `NTuple` or `Vararg` of `Augmentor.Operation`
     that denote the possible choices to sample from when applied.
 
 - **`chances`** : Optional. Denotes the relative chances for an
@@ -47,7 +47,7 @@ Arguments
     argument. If omitted every operation will have equal
     probability of occurring.
 
-- **`pairs`** : `Vararg` of `Pair{<:Real,<:Augmentor.ImageOperation}`.
+- **`pairs`** : `Vararg` of `Pair{<:Real,<:Augmentor.Operation}`.
     A compact way to specify an operation and its chance of
     occurring together.
 
@@ -74,12 +74,12 @@ augment(img, Either((FlipX(), FlipY(), NoOp()), (1,1,2)))
 augment(img, (1=>FlipX()) * (1=>FlipY()) * (2=>NoOp()))
 ```
 """
-struct Either{N,T<:Tuple} <: ImageOperation
+struct Either{N,T<:Tuple} <: Operation
     operations::T
     chances::SVector{N,Float64}
     cum_chances::SVector{N,Float64}
 
-    function Either(operations::NTuple{N,ImageOperation}, chances::SVector{N}) where N
+    function Either(operations::NTuple{N,Operation}, chances::SVector{N}) where N
         all(c->c>=0, chances) || throw(ArgumentError("All provided \"chances\" must be positive"))
         length(operations) > 0 || throw(ArgumentError("Must provide at least one operation in the constructor of \"Either\""))
         sum_chances = sum(chances)
@@ -92,11 +92,11 @@ end
 
 Either() = throw(ArgumentError("Must provide at least one operation in the constructor of \"Either\""))
 
-function Either(operations::NTuple{N,ImageOperation}, chances::NTuple{N,Real} = map(op -> 1/length(operations), operations)) where N
+function Either(operations::NTuple{N,Operation}, chances::NTuple{N,Real} = map(op -> 1/length(operations), operations)) where N
     Either(operations, SVector{N}(chances))
 end
 
-function Either(operations::Vararg{ImageOperation,N}; chances = map(op -> 1/length(operations), operations)) where N
+function Either(operations::Vararg{Operation,N}; chances = map(op -> 1/length(operations), operations)) where N
     Either(operations, SVector{N}(map(Float64, chances)))
 end
 
@@ -104,7 +104,7 @@ function Either(operations::Pair...)
     Either(map(last, operations), map(first, operations))
 end
 
-function Either(op::ImageOperation, p::Real = .5)
+function Either(op::Operation, p::Real = .5)
     0 <= p <= 1. || throw(ArgumentError("The propability \"p\" has to be in the interval [0, 1]"))
     p1 = Float64(p)
     p2 = 1 - p1

@@ -1,5 +1,5 @@
 """
-    Resize <: Augmentor.ImageOperation
+    Resize <: Augmentor.ArrayOperation
 
 Description
 --------------
@@ -41,7 +41,7 @@ img = testpattern()
 augment(img, Resize(30, 40))
 ```
 """
-struct Resize{N} <: ImageOperation
+struct Resize{N} <: ArrayOperation
     size::NTuple{N,Int}
 
     function Resize{N}(size::NTuple{N,Int}) where N
@@ -56,15 +56,6 @@ Resize(; width=64, height=64) = Resize((height,width))
 
 @inline supports_affineview(::Type{<:Resize}) = true
 
-function toaffinemap(op::Resize{2}, img::AbstractMatrix)
-    # emulate behaviour of ImageTransformations.imresize!
-    Rin  = CartesianIndices(axes(img))
-    sf = map(/, op.size, (last(Rin)-first(Rin)+1*one(first(Rin))).I)
-    offset = map((io,ir,s)->io - 0.5 - s*(ir-0.5), first(Rin).I, (1, 1), map(inv,sf))
-    ttrans = AffineMap(@SMatrix([1. 0.; 0. 1.]), SVector(offset))
-    tscale = recenter(@SMatrix([sf[1] 0.; 0. sf[2]]), @SVector([1., 1.]))
-    tscale ∘ ttrans
-end
 
 function applyeager(op::Resize, img::AbstractArray, param)
     plain_array(imresize(img, op.size))

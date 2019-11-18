@@ -14,18 +14,18 @@ struct NoOp <: AffineOperation end
 @inline supports_view(::Type{NoOp}) = true
 
 # TODO: implement method for n-dim arrays
-toaffinemap(::NoOp, img::AbstractMatrix) = AffineMap(@SMatrix([1. 0; 0 1.]), @SVector([0.,0.]))
-applyeager(::NoOp, img::AbstractArray, param) = maybe_copy(img)
-applylazy(::NoOp, img::AbstractArray, param) = img
+toaffinemap(::NoOp, input::AbstractMatrix) = AffineMap(@SMatrix([1. 0; 0 1.]), @SVector([0.,0.]))
+applyeager(::NoOp, input::AbstractArray, param) = maybe_copy(input)
+applylazy(::NoOp, input::AbstractArray, param) = input
 
-function applyview(::NoOp, img::AbstractArray, param)
-    idx = map(i->1:length(i), axes(img))
-    indirect_view(img, idx)
+function applyview(::NoOp, input::AbstractArray, param)
+    idx = map(i->1:length(i), axes(input))
+    indirect_view(input, idx)
 end
 
-function applystepview(::NoOp, img::AbstractArray, param)
-    idx = map(i->1:1:length(i), axes(img))
-    indirect_view(img, idx)
+function applystepview(::NoOp, input::AbstractArray, param)
+    idx = map(i->1:1:length(i), axes(input))
+    indirect_view(input, idx)
 end
 
 function showconstruction(io::IO, op::NoOp)

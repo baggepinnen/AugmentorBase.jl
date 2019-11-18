@@ -1,14 +1,23 @@
 """
-    testpattern() -> Matrix{RGBA{N0f8}}
+    testpattern(dims=2) -> Matrix{RGBA{N0f8}}
 
-Load and return the provided 300x400 test image.
+For dims = 1, return a mix of two sinusoids.
+
+For dims = 2, load and return the provided 300x400 test image.
 
 The returned image was specifically designed to be informative
 about the effects of the applied augmentation operations. It is
 thus well suited to prototype an augmentation pipeline, because it
 makes it easy to see what kind of effects one can achieve with it.
 """
-testpattern() = load(joinpath(@__DIR__, "..", "resources", "testpattern.png"))
+function testpattern(dims=2)
+    if dims == 1
+        t = 0:0.1:10
+        return sin.(2pi.*t) .+ sin.(2pi*2 .*t)
+    else
+        load(joinpath(@__DIR__, "..", "resources", "testpattern.png"))
+    end
+end
 
 function use_testpattern()
     @info("No custom image specifed. Using \"testpattern()\" for demonstration.")
